@@ -19,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   List<int> quantity = [0, 0, 0, 0];
   int totalHarga = 0;
   int totalMenu = 0;
+  String voucher = 'Input Voucher';
 
   Future<Menus> getDataFromAPI() async {
     Uri url = Uri.parse('https://tes-mobile.landa.id/api/menus');
@@ -49,6 +50,130 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     Sizing().init(context);
+
+    void openDialog() {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+                title: Text(
+                  'Pilih voucher',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: Sizing.blockSizeHorizontal! * 4),
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        if (totalHarga >= 10000) {
+                          setState(() {
+                            totalHarga -= 10000;
+                            voucher = 'Hemat (Rp10.000)';
+                            Navigator.pop(context);
+                          });
+                        } else {
+                          setState(() {
+                            totalHarga = 0;
+                            voucher = 'Hemat (Rp10.000)';
+                            Navigator.pop(context);
+                          });
+                        }
+                      },
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(0),
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return const Color(0xff009AAD);
+                            }
+                            return Color(0xff009AAD);
+                          },
+                        ),
+                        padding: MaterialStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              vertical: 8 * 1.5, horizontal: 8 * 4),
+                        ),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8 * 10),
+                            side: BorderSide(
+                              color: Colors.white,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text("Hemat (Rp10.000)",
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    color: Colors.white,
+                                    fontSize: Sizing.blockSizeHorizontal! * 4,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  )),
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (totalHarga >= 100000) {
+                          setState(() {
+                            totalHarga -= 100000;
+                            voucher = 'Puas (Rp100.000)';
+                            Navigator.pop(context);
+                          });
+                        } else {
+                          setState(() {
+                            totalHarga = 0;
+                            voucher = 'Puas (Rp100.000)';
+                            Navigator.pop(context);
+                          });
+                        }
+                      },
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(0),
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return const Color(0xff009AAD);
+                            }
+                            return Color(0xff009AAD);
+                          },
+                        ),
+                        padding: MaterialStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              vertical: 8 * 1.5, horizontal: 8 * 4),
+                        ),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8 * 10),
+                            side: BorderSide(
+                              color: Colors.white,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text("Puas (Rp100.000)",
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    color: Colors.white,
+                                    fontSize: Sizing.blockSizeHorizontal! * 4,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  )),
+                    )
+                  ],
+                ),
+              ));
+    }
 
     return Scaffold(
         backgroundColor: Colors.white,
@@ -173,11 +298,13 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                             InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  openDialog();
+                                },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text("Input Voucher",
+                                    Text(voucher,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyLarge!
@@ -466,6 +593,19 @@ class _HomePageState extends State<HomePage> {
                               ),
                             )),
                       ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              quantity = [0, 0, 0, 0];
+                              totalHarga = 0;
+                              totalMenu = 0;
+                              voucher = 'Input Voucher';
+                            });
+                          },
+                          child: Text('Reset'))
                     ],
                   ),
                 ),
