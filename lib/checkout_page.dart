@@ -1,86 +1,30 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:online_store/menus.dart';
-// import 'package:online_store/order.dart';
-import 'package:online_store/sizing.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:online_store/checkout_page.dart';
+import 'package:online_store/home_page.dart';
+import 'package:online_store/menus.dart';
+import 'package:online_store/sizing.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CheckoutPage extends StatefulWidget {
+  final Menus menus;
+  List<int> quantity;
+  int totalHarga;
+  int totalMenu;
+  String voucher;
+  CheckoutPage(
+      {super.key,
+      required this.menus,
+      required this.quantity,
+      required this.totalHarga,
+      required this.totalMenu,
+      required this.voucher});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<CheckoutPage> createState() => _CheckoutPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  late Menus menus;
-  // late Order order;
-  bool isDataLoaded = false;
-  List<int> quantity = [0, 0, 0, 0];
-  int totalHarga = 0;
-  int totalMenu = 0;
-  String voucher = 'Input Voucher';
-
-  Future<Menus> getDataFromAPI() async {
-    Uri url = Uri.parse('https://tes-mobile.landa.id/api/menus');
-    var response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      Menus menus = menusFromJson(response.body);
-      setState(() {
-        isDataLoaded = true;
-      });
-      return menus;
-    } else {
-      return Menus(statusCode: response.statusCode, datas: []);
-    }
-  }
-
-  // Future<Order> sendDataToAPI(int diskon, int totalPesanan) async {
-  //   Uri url = Uri.parse('https://tes-mobile.landa.id/api/order');
-  //   var response = await http.post(url,
-  //       body: jsonEncode(<String, Object>{
-  //         "nominal_diskon": "${diskon}",
-  //         "nominal_pesanan": "${totalPesanan}"
-  //         // "items": [
-  //         //   {"id": id[0], "harga": harga[0], "catatan": catatan[0]},
-  //         //   {"id": id[1], "harga": harga[1], "catatan": catatan[1]},
-  //         //   {"id": id[2], "harga": harga[2], "catatan": catatan[2]},
-  //         //   {"id": id[3], "harga": harga[3], "catatan": catatan[3]}
-  //         // ]
-  //       }));
-
-  //   if (response.statusCode == 200) {
-  //     return order = orderFromJson(response.body);
-  //   } else {
-  //     return Order(nominalDiskon: '', nominalPesanan: '', items: []);
-  //   }
-  // }
-
-  assignData() async {
-    menus = await getDataFromAPI();
-  }
-
-  resetData() {
-    setState(() {
-      quantity = [0, 0, 0, 0];
-      totalHarga = 0;
-      totalMenu = 0;
-      voucher = 'Input Voucher';
-    });
-  }
-
-  @override
-  void initState() {
-    // call function
-    assignData();
-    resetData();
-    super.initState();
-  }
-
+class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     Sizing().init(context);
@@ -89,45 +33,44 @@ class _HomePageState extends State<HomePage> {
       showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(
-                title: Text(
-                  'Pilih voucher',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: Sizing.blockSizeHorizontal! * 4),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/warning.svg',
+                      width: Sizing.blockSizeHorizontal! * 12,
+                      color: Color(0xff009AAD),
+                    ),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    SizedBox(
+                        width: Sizing.blockSizeHorizontal! * 50,
+                        child: Text(
+                          'Apakah Anda yakin ingin membatalkan pesanan ini?',
+                          maxLines: 4,
+                          style: TextStyle(
+                              fontSize: Sizing.blockSizeHorizontal! * 4.5,
+                              fontWeight: FontWeight.w400),
+                        ))
+                  ],
                 ),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(20))),
-                content: Column(
+                content: Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        if (totalHarga >= 10000) {
-                          setState(() {
-                            totalHarga -= 10000;
-                            voucher = 'Hemat (Rp10.000)';
-                            Navigator.pop(context);
-                          });
-                        } else {
-                          setState(() {
-                            totalHarga = 0;
-                            voucher = 'Hemat (Rp10.000)';
-                            Navigator.pop(context);
-                          });
-                        }
+                        Navigator.pop(context);
                       },
                       style: ButtonStyle(
                         elevation: MaterialStateProperty.all(0),
                         backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) {
-                              return const Color(0xff009AAD);
-                            }
-                            return Color(0xff009AAD);
-                          },
-                        ),
+                            MaterialStateProperty.all(Colors.white),
                         padding: MaterialStateProperty.all(
                           const EdgeInsets.symmetric(
                               vertical: 8 * 1.5, horizontal: 8 * 4),
@@ -136,39 +79,30 @@ class _HomePageState extends State<HomePage> {
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8 * 10),
                             side: BorderSide(
-                              color: Colors.white,
+                              color: Color(0xff009AAD),
                               width: 1,
                             ),
                           ),
                         ),
                       ),
-                      child: Text("Hemat (Rp10.000)",
+                      child: Text("Tidak",
                           style:
                               Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                    color: Colors.white,
+                                    color: Color(0xff009AAD),
                                     fontSize: Sizing.blockSizeHorizontal! * 4,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   )),
                     ),
                     SizedBox(
-                      height: 8,
+                      width: 8,
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        if (totalHarga >= 100000) {
-                          setState(() {
-                            totalHarga -= 100000;
-                            voucher = 'Puas (Rp100.000)';
-                            Navigator.pop(context);
-                          });
-                        } else {
-                          setState(() {
-                            totalHarga = 0;
-                            voucher = 'Puas (Rp100.000)';
-                            Navigator.pop(context);
-                          });
-                        }
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return HomePage();
+                        }));
                       },
                       style: ButtonStyle(
                         elevation: MaterialStateProperty.all(0),
@@ -195,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      child: Text("Puas (Rp100.000)",
+                      child: Text("Yakin",
                           style:
                               Theme.of(context).textTheme.bodyLarge!.copyWith(
                                     color: Colors.white,
@@ -210,7 +144,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-        backgroundColor: Colors.white,
         bottomNavigationBar: Container(
             height: Sizing.blockSizeVertical! * 30,
             // padding: EdgeInsets.all(8 * 2),
@@ -243,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Total Pesanan (${totalMenu} Menu)',
+                                  'Total Pesanan (${widget.totalMenu} Menu)',
                                   style: TextStyle(
                                       fontSize: Sizing.blockSizeHorizontal! * 5,
                                       fontWeight: FontWeight.w300,
@@ -256,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text("Rp ${totalHarga}",
+                                    Text("Rp ${widget.totalHarga}",
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyLarge!
@@ -333,12 +266,15 @@ class _HomePageState extends State<HomePage> {
                             ),
                             InkWell(
                                 onTap: () {
-                                  openDialog();
+                                  // openDialog();
                                 },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text(voucher,
+                                    Text(
+                                        widget.voucher == 'Input Voucher'
+                                            ? 'Tanpa Voucher'
+                                            : widget.voucher,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyLarge!
@@ -417,7 +353,7 @@ class _HomePageState extends State<HomePage> {
                                           color: Colors.black),
                                     ),
                                     Text(
-                                      'Rp ${totalHarga}',
+                                      'Rp ${widget.totalHarga}',
                                       style: TextStyle(
                                           fontSize:
                                               Sizing.blockSizeHorizontal! * 5,
@@ -430,19 +366,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return CheckoutPage(
-                                      menus: menus,
-                                      quantity: quantity,
-                                      totalHarga: totalHarga,
-                                      totalMenu: totalMenu,
-                                      voucher: voucher);
-                                }));
-                                // setState(() async {
-                                //   order = await sendDataToAPI(10000, 30000);
-                                // });
-                                // print(order);
+                                openDialog();
                               },
                               style: ButtonStyle(
                                 elevation: MaterialStateProperty.all(0),
@@ -470,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               ),
-                              child: Text("Pesan Sekarang",
+                              child: Text("Batalkan",
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodyLarge!
@@ -490,179 +414,163 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             )),
-        body: isDataLoaded
-            ? SafeArea(
-                child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ListView.separated(
-                        scrollDirection: Axis.vertical,
-                        physics: const BouncingScrollPhysics(),
-                        shrinkWrap: true,
-                        separatorBuilder: (context, index) => const Divider(
-                          color: Colors.transparent,
-                          height: 8 * 3,
-                        ),
-                        itemCount: menus.datas.length,
-                        itemBuilder: (context, index) => Container(
-                            height: Sizing.blockSizeVertical! * 12,
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Color(0xffF6F6F6),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(12)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey,
-                                  blurRadius: 5.0,
-                                  spreadRadius: -2.0,
-                                  offset: Offset(
-                                    2.0,
-                                    2.0,
-                                  ),
-                                )
-                              ],
-                            ),
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  SizedBox(
-                                    width: 80,
-                                    height: 80,
-                                    child: Image.network(
-                                      menus.datas[index].gambar,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                      width: Sizing.blockSizeHorizontal! * 35,
-                                      child: Column(
-                                        // mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            menus.datas[index].nama,
-                                            style: TextStyle(
-                                                fontSize: Sizing
-                                                        .blockSizeHorizontal! *
-                                                    5,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                          Text(
-                                            'Rp ${menus.datas[index].harga}',
-                                            style: TextStyle(
-                                                fontSize: Sizing
-                                                        .blockSizeHorizontal! *
-                                                    4,
-                                                color: Color(0xff009AAD),
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                          Text(
-                                            'Tambahkan catatan',
-                                            style: TextStyle(
-                                                fontSize: Sizing
-                                                        .blockSizeHorizontal! *
-                                                    3,
-                                                color: Colors.grey,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ],
-                                      )),
-                                  SizedBox(
-                                    width: Sizing.blockSizeHorizontal! * 25,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: InkWell(
-                                            onTap: () {
-                                              setState(() {
-                                                quantity[index] -= 1;
-                                                totalHarga -=
-                                                    menus.datas[index].harga;
-                                                totalMenu -= 1;
-                                              });
-                                            },
-                                            child: Icon(Icons.remove,
-                                                size: Sizing
-                                                        .blockSizeHorizontal! *
-                                                    7,
-                                                color: Color(0xff009AAD)),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 12,
-                                        ),
-                                        Text(
-                                          '${quantity[index]}',
-                                          style: TextStyle(
-                                              fontSize:
-                                                  Sizing.blockSizeHorizontal! *
-                                                      6),
-                                        ),
-                                        SizedBox(
-                                          width: 12,
-                                        ),
-                                        SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: InkWell(
-                                            onTap: () {
-                                              setState(() {
-                                                quantity[index] += 1;
-                                                totalHarga +=
-                                                    menus.datas[index].harga;
-                                                totalMenu += 1;
-                                              });
-                                            },
-                                            child: Icon(Icons.add,
-                                                size: Sizing
-                                                        .blockSizeHorizontal! *
-                                                    7,
-                                                color: Color(0xff009AAD)),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ],
+        body: SafeArea(
+            child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ListView.separated(
+                  scrollDirection: Axis.vertical,
+                  physics: const BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  separatorBuilder: (context, index) => const Divider(
+                    color: Colors.transparent,
+                    height: 8 * 3,
+                  ),
+                  itemCount: widget.menus.datas.length,
+                  itemBuilder: (context, index) => Opacity(
+                    opacity: widget.quantity[index] > 0 ? 1.0 : 0.5,
+                    child: Container(
+                        height: Sizing.blockSizeVertical! * 12,
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: widget.quantity[index] > 0
+                              ? Color(0xffF6F6F6)
+                              : Color.fromARGB(255, 202, 202, 202),
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey,
+                              blurRadius: 5.0,
+                              spreadRadius: -2.0,
+                              offset: Offset(
+                                2.0,
+                                2.0,
                               ),
-                            )),
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      ElevatedButton(
-                          style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all(Color(0xff009AAD))),
-                          onPressed: () {
-                            setState(() {
-                              quantity = [0, 0, 0, 0];
-                              totalHarga = 0;
-                              totalMenu = 0;
-                              voucher = 'Input Voucher';
-                            });
-                          },
-                          child: Text('Reset'))
-                    ],
+                            )
+                          ],
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                width: 80,
+                                height: 80,
+                                child: Image.network(
+                                  widget.menus.datas[index].gambar,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              SizedBox(
+                                  width: Sizing.blockSizeHorizontal! * 35,
+                                  child: Column(
+                                    // mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.menus.datas[index].nama,
+                                        style: TextStyle(
+                                            fontSize:
+                                                Sizing.blockSizeHorizontal! * 5,
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                      Text(
+                                        'Rp ${widget.menus.datas[index].harga}',
+                                        style: TextStyle(
+                                            fontSize:
+                                                Sizing.blockSizeHorizontal! * 4,
+                                            color: Color(0xff009AAD),
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                      Text(
+                                        'Tambahkan catatan',
+                                        style: TextStyle(
+                                            fontSize:
+                                                Sizing.blockSizeHorizontal! * 3,
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                    ],
+                                  )),
+                              SizedBox(
+                                width: Sizing.blockSizeHorizontal! * 25,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // SizedBox(
+                                    //   width: 24,
+                                    //   height: 24,
+                                    //   child: InkWell(
+                                    //     onTap: () {
+                                    //       setState(() {
+                                    //         quantity[index] -= 1;
+                                    //         totalHarga -= menus.datas[index].harga;
+                                    //         totalMenu -= 1;
+                                    //       });
+                                    //     },
+                                    //     child: Icon(Icons.remove,
+                                    //         size: Sizing.blockSizeHorizontal! * 7,
+                                    //         color: Color(0xff009AAD)),
+                                    //   ),
+                                    // ),
+                                    SizedBox(
+                                      width: 12,
+                                    ),
+                                    Text(
+                                      '${widget.quantity[index]}',
+                                      style: TextStyle(
+                                          fontSize:
+                                              Sizing.blockSizeHorizontal! * 6),
+                                    ),
+                                    SizedBox(
+                                      width: 12,
+                                    ),
+                                    // SizedBox(
+                                    //   width: 24,
+                                    //   height: 24,
+                                    //   child: InkWell(
+                                    //     onTap: () {
+                                    //       setState(() {
+                                    //         quantity[index] += 1;
+                                    //         totalHarga += menus.datas[index].harga;
+                                    //         totalMenu += 1;
+                                    //       });
+                                    //     },
+                                    //     child: Icon(Icons.add,
+                                    //         size: Sizing.blockSizeHorizontal! * 7,
+                                    //         color: Color(0xff009AAD)),
+                                    //   ),
+                                    // ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        )),
                   ),
                 ),
-              ))
-            : Center(
-                child: CircularProgressIndicator(),
-              ));
+                SizedBox(
+                  height: 16,
+                ),
+                // ElevatedButton(
+                //     onPressed: () {
+                //       setState(() {
+                //         quantity = [0, 0, 0, 0];
+                //         totalHarga = 0;
+                //         totalMenu = 0;
+                //         voucher = 'Input Voucher';
+                //       });
+                //     },
+                //     child: Text('Reset'))
+              ],
+            ),
+          ),
+        )));
   }
 }
