@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:online_store/menus.dart';
@@ -7,6 +6,7 @@ import 'package:online_store/menus.dart';
 import 'package:online_store/sizing.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:online_store/checkout_page.dart';
+import 'package:online_store/vouchers.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,12 +17,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Menus menus;
+  late Vouchers vouchers;
   // late Order order;
   bool isDataLoaded = false;
   List<int> quantity = [0, 0, 0, 0];
   int totalHarga = 0;
   int totalMenu = 0;
   String voucher = 'Input Voucher';
+  String voucherInputted = '';
+  TextEditingController voucherController = TextEditingController();
 
   Future<Menus> getDataFromAPI() async {
     Uri url = Uri.parse('https://tes-mobile.landa.id/api/menus');
@@ -36,6 +39,21 @@ class _HomePageState extends State<HomePage> {
       return menus;
     } else {
       return Menus(statusCode: response.statusCode, datas: []);
+    }
+  }
+
+  Future<Vouchers> getVouchersFromAPI() async {
+    Uri url = Uri.parse('https://tes-mobile.landa.id/api/vouchers');
+    var response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      Vouchers vouchers = vouchersFromJson(response.body);
+      // setState(() {
+      //   isDataLoaded = true;
+      // });
+      return vouchers;
+    } else {
+      return Vouchers(statusCode: response.statusCode, datas: []);
     }
   }
 
@@ -62,6 +80,7 @@ class _HomePageState extends State<HomePage> {
 
   assignData() async {
     menus = await getDataFromAPI();
+    vouchers = await getVouchersFromAPI();
   }
 
   resetData() {
@@ -70,8 +89,15 @@ class _HomePageState extends State<HomePage> {
       totalHarga = 0;
       totalMenu = 0;
       voucher = 'Input Voucher';
+      voucherInputted = '';
     });
   }
+
+  // void _printLatestValue() {
+  //   setState(() {
+  //     voucherInputted = voucherController.text;
+  //   });
+  // }
 
   @override
   void initState() {
@@ -79,131 +105,168 @@ class _HomePageState extends State<HomePage> {
     assignData();
     resetData();
     super.initState();
+    // voucherController.addListener(_printLatestValue);
   }
+
+  // @override
+  // void dispose() {
+  //   // Clean up the controller when the widget is removed from the
+  //   // widget tree.
+  //   voucherController.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
     Sizing().init(context);
 
-    void openDialog() {
-      showDialog(
+    void openVoucherDialog() {
+      showModalBottomSheet(
+          isScrollControlled: true,
+          enableDrag: true,
+          isDismissible: true,
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(8 * 2))),
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-                title: Text(
-                  'Pilih voucher',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: Sizing.blockSizeHorizontal! * 4),
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                content: Column(
+          builder: (context) => Container(
+                padding: EdgeInsets.only(
+                    top: 16,
+                    right: 16,
+                    left: 16,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 24),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        if (totalHarga >= 10000) {
-                          setState(() {
-                            totalHarga -= 10000;
-                            voucher = 'Hemat (Rp10.000)';
-                            Navigator.pop(context);
-                          });
-                        } else {
-                          setState(() {
-                            totalHarga = 0;
-                            voucher = 'Hemat (Rp10.000)';
-                            Navigator.pop(context);
-                          });
-                        }
-                      },
-                      style: ButtonStyle(
-                        elevation: MaterialStateProperty.all(0),
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) {
-                              return const Color(0xff009AAD);
-                            }
-                            return Color(0xff009AAD);
-                          },
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/voucher.svg',
+                          color: Color(0xff009AAD),
+                          width: Sizing.blockSizeHorizontal! * 10,
                         ),
-                        padding: MaterialStateProperty.all(
-                          const EdgeInsets.symmetric(
-                              vertical: 8 * 1.5, horizontal: 8 * 4),
+                        SizedBox(
+                          width: 8,
                         ),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8 * 10),
-                            side: BorderSide(
-                              color: Colors.white,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text("Hemat (Rp10.000)",
-                          style:
-                              Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                    color: Colors.white,
-                                    fontSize: Sizing.blockSizeHorizontal! * 4,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  )),
+                        Text(
+                          'Punya kode voucher?',
+                          style: TextStyle(
+                              fontSize: Sizing.blockSizeHorizontal! * 5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                        )
+                      ],
                     ),
                     SizedBox(
                       height: 8,
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (totalHarga >= 100000) {
-                          setState(() {
-                            totalHarga -= 100000;
-                            voucher = 'Puas (Rp100.000)';
-                            Navigator.pop(context);
-                          });
-                        } else {
-                          setState(() {
-                            totalHarga = 0;
-                            voucher = 'Puas (Rp100.000)';
-                            Navigator.pop(context);
-                          });
-                        }
+                    Text(
+                      'Masukkan kode voucher di sini',
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                          fontSize: Sizing.blockSizeHorizontal! * 4,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.black),
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    TextField(
+                      onChanged: (String str) {
+                        setState(() {
+                          voucherInputted = str;
+                        });
                       },
-                      style: ButtonStyle(
-                        elevation: MaterialStateProperty.all(0),
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) {
-                              return const Color(0xff009AAD);
+                      controller: voucherController,
+                      autofocus: true,
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      voucherInputted.isNotEmpty
+                          ? voucherInputted.toLowerCase() ==
+                                  vouchers.datas[0].kode
+                              ? 'Voucher Puas (Rp100.000)'
+                              : voucherInputted.toLowerCase() ==
+                                      vouchers.datas[1].kode
+                                  ? 'Voucher Hemat (Rp10.000)'
+                                  : 'Voucher salah'
+                          : '',
+                      style: TextStyle(
+                          color: voucherInputted.toLowerCase() ==
+                                  vouchers.datas[0].kode
+                              ? const Color(0xff009AAD)
+                              : voucherInputted.toLowerCase() ==
+                                      vouchers.datas[1].kode
+                                  ? const Color(0xff009AAD)
+                                  : Colors.red,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(
+                      height: 16,
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          if (totalHarga >= 100000) {
+                            if (voucherInputted.toLowerCase() == 'puas') {
+                              setState(() {
+                                totalHarga -= 100000;
+                                voucher = 'Puas (Rp100.000)';
+                                Navigator.pop(context);
+                              });
+                            } else if (voucherInputted.toLowerCase() ==
+                                'hemat') {
+                              setState(() {
+                                totalHarga -= 10000;
+                                voucher = 'Hemat (Rp10.000)';
+                                Navigator.pop(context);
+                              });
+                            } else {
+                              return;
                             }
-                            return Color(0xff009AAD);
-                          },
-                        ),
-                        padding: MaterialStateProperty.all(
-                          const EdgeInsets.symmetric(
-                              vertical: 8 * 1.5, horizontal: 8 * 4),
-                        ),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8 * 10),
-                            side: BorderSide(
-                              color: Colors.white,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Text("Puas (Rp100.000)",
-                          style:
-                              Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                    color: Colors.white,
-                                    fontSize: Sizing.blockSizeHorizontal! * 4,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  )),
-                    )
+                          } else if (totalHarga >= 10000) {
+                            if (voucherInputted.toLowerCase() == 'puas') {
+                              setState(() {
+                                totalHarga = 0;
+                                voucher = 'Puas (Rp100.000)';
+                                Navigator.pop(context);
+                              });
+                            } else if (voucherInputted.toLowerCase() ==
+                                'hemat') {
+                              setState(() {
+                                totalHarga -= 10000;
+                                voucher = 'Hemat (Rp10.000)';
+                                Navigator.pop(context);
+                              });
+                            } else {
+                              return;
+                            }
+                          } else {
+                            if (voucherInputted.toLowerCase() == 'puas') {
+                              setState(() {
+                                totalHarga = 0;
+                                voucher = 'Puas (Rp100.000)';
+                                Navigator.pop(context);
+                              });
+                            } else if (voucherInputted.toLowerCase() ==
+                                'hemat') {
+                              setState(() {
+                                totalHarga = 0;
+                                voucher = 'Hemat (Rp10.000)';
+                                Navigator.pop(context);
+                              });
+                            } else {
+                              return;
+                            }
+                          }
+                        },
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Color(0xff009AAD))),
+                        child: Text('Validasi Voucher'))
                   ],
                 ),
               ));
@@ -333,7 +396,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             InkWell(
                                 onTap: () {
-                                  openDialog();
+                                  openVoucherDialog();
                                 },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -353,11 +416,6 @@ class _HomePageState extends State<HomePage> {
                                     SizedBox(
                                       width: 8,
                                     ),
-                                    // SvgPicture.asset(
-                                    //   'assets/arrow_right.svg',
-                                    //   color: Color(0xff2E2E2E),
-                                    //   width: Sizing.blockSizeHorizontal! * 4,
-                                    // ),
                                   ],
                                 ))
                           ],

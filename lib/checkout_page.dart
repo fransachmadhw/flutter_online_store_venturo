@@ -43,7 +43,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       color: Color(0xff009AAD),
                     ),
                     SizedBox(
-                      width: 8,
+                      width: 12,
                     ),
                     SizedBox(
                         width: Sizing.blockSizeHorizontal! * 50,
